@@ -64,11 +64,6 @@
       <div class="container">
         <div class="mb-4">
           <h2 class="h2 mb-2">Como usar el sistema</h2>
-          <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
-            <button id="cargarProductos" class="btn btn-outline-primary" type="button">Cargar inventario de ejemplo</button>
-            <span id="estadoCarga" class="small text-secondary" role="status" aria-live="polite"></span>
-          </div>
-          <div id="productosApi" class="tarjetas mt-3" aria-live="polite"></div>
         </div>
         <div class="tarjetas">
           <article class="card tarjeta-panel tarjeta-registro border-0">
@@ -103,6 +98,11 @@
             </div>
           </article>
           <div class="col-lg-8">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+              <button id="cargarProductos" class="btn btn-outline-primary" type="button">Cargar inventario de ejemplo</button>
+              <span id="estadoCarga" class="small text-secondary" role="status" aria-live="polite"></span>
+            </div>
+            <div id="productosApi" class="tarjetas mb-3" aria-live="polite"></div>
             <form id="formularioProducto" class="card border-0 shadow-sm p-4 needs-validation" novalidate>
               <div class="row g-3">
                 <div class="col-md-8">
