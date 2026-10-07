@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "nombre": "Café molido 500 g",
+    "sku": "NOV-001",
+    "existencia": 24
+  },
+  {
+    "id": 2,
+    "nombre": "Agua mineral 1 L",
+    "sku": "NOV-002",
+    "existencia": 12
+  },
+  {
+    "id": 3,
+    "nombre": "Detergente líquido",
+    "sku": "NOV-003",
+    "existencia": 8
+  }
+]

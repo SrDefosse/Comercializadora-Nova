@@ -1,0 +1,207 @@
+:root {
+  --nova-primario: #2458a6;
+  --nova-primario-oscuro: #173f7c;
+  --nova-tintado: #1d2733;
+  --nova-linea: #dfe5ec;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--nova-tintado);
+  background: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.marca-navegacion {
+  color: var(--nova-tintado);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.nav-link {
+  color: #5c6673;
+}
+
+.nav-link.active,
+.nav-link:hover {
+  color: var(--nova-primario);
+}
+
+.seccion-portada {
+  background: linear-gradient(180deg, #f7f9fc 0%, #fff 100%);
+}
+
+.seccion-portada .row {
+  min-height: 520px;
+}
+
+.btn-primary {
+  border-color: var(--nova-primario);
+  background: var(--nova-primario);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  border-color: var(--nova-primario-oscuro);
+  background: var(--nova-primario-oscuro);
+}
+
+.card {
+  border-radius: 1rem;
+}
+
+.carousel {
+  background: #dfe7f1;
+}
+
+.carousel-item img {
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.shadow-sm {
+  box-shadow: 0 0.25rem 1rem rgba(22, 35, 52, 0.08) !important;
+}
+
+.border-top,
+.border-bottom {
+  border-color: var(--nova-linea) !important;
+}
+
+.tarjetas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+.tarjeta-panel {
+  position: relative;
+  display: flex;
+  min-height: 280px;
+  overflow: hidden;
+  text-align: left;
+  border-radius: 1rem;
+  background-position: center;
+  background-size: cover;
+  color: #fff;
+  isolation: isolate;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.tarjeta-panel::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 20, 32, 0.28) 10%, rgba(10, 20, 32, 0.95) 100%);
+  content: "";
+}
+
+.contenido-tarjeta {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.tarjeta-registro {
+  background-image: url("assets/operaria-revisando-inventario.jpg");
+  background-position: 58% center;
+}
+
+.tarjeta-alerta {
+  background-image: url("assets/anaqueles-con-tarimas.jpg");
+}
+
+.tarjeta-movimientos {
+  background-image: url("assets/auxiliar-de-almacen.jpg");
+  background-position: center 42%;
+}
+
+.tarjeta-panel:hover {
+  box-shadow: 0 1rem 2rem rgba(22, 35, 52, 0.18);
+  transform: translateY(-4px);
+}
+
+.titulo-tarjeta {
+  margin-bottom: 0.35rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.descripcion-tarjeta {
+  max-width: 30ch;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.nota-importante {
+  border: 1px solid #d7e4f7;
+  background: #eef4fc;
+  color: #344a63;
+}
+
+.form-control,
+.form-select {
+  min-height: 44px;
+  border-color: #ccd5df;
+  border-radius: 0.6rem;
+}
+
+textarea.form-control {
+  min-height: 90px;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #7ea2d6;
+  box-shadow: 0 0 0 0.25rem rgba(36, 88, 166, 0.12);
+}
+
+@media (min-width: 768px) {
+  .tarjetas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 240px;
+  }
+
+  .tarjeta-registro {
+    grid-row: span 2;
+  }
+
+  .tarjeta-panel {
+    min-height: 0;
+  }
+}
+
+@media (min-width: 992px) {
+  .tarjetas {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .seccion-portada .row {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .carousel-item img {
+    height: 280px;
+  }
+
+  .display-5 {
+    font-size: 2rem;
+  }
+
+  .lead {
+    font-size: 1rem;
+  }
+}
