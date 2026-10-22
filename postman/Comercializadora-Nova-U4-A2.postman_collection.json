@@ -1,0 +1,124 @@
+{
+  "info": {
+    "name": "Comercializadora Nova - Unidad 4 Actividad 2 (JWT)",
+    "description": "Local para preparar dos cuentas falsas y reproducir las ocho comprobaciones requeridas. La variable jwtSecretBase64 debe existir solo en un Environment local de Postman como valor secreto",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "ownerEmail", "value": "ana.postman@example.test" },
+    { "key": "ownerPassword", "value": "Nova-Postman-Ana-2026!" },
+    { "key": "otherEmail", "value": "bruno.postman@example.test" },
+    { "key": "otherPassword", "value": "Nova-Postman-Bruno-2026!" },
+    { "key": "ownerId", "value": "" },
+    { "key": "otherId", "value": "" },
+    { "key": "ownerToken", "value": "" },
+    { "key": "otherToken", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "tamperedToken", "value": "" },
+    { "key": "expiredToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Preparación (ejecutar primero)",
+      "item": [
+        {
+          "name": "Preparación - Registrar cuenta propietaria",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Ana Postman\",\n  \"email\": \"{{ownerEmail}}\",\n  \"telefono\": \"4771234567\",\n  \"contrasena\": \"{{ownerPassword}}\"\n}" },
+            "url": "{{baseUrl}}/api/usuarios"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Registro de cuenta propietaria: 201', () => pm.response.to.have.status(201));", "const body = pm.response.json();", "pm.collectionVariables.set('ownerId', String(body.datos.id));", "pm.test('La respuesta no expone contraseña ni hash', () => { pm.expect(body.datos).not.to.have.property('contrasena'); pm.expect(body.datos).not.to.have.property('hashContrasena'); });"] } }]
+        },
+        {
+          "name": "Preparación - Registrar segunda cuenta",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Bruno Postman\",\n  \"email\": \"{{otherEmail}}\",\n  \"telefono\": \"4771234568\",\n  \"contrasena\": \"{{otherPassword}}\"\n}" },
+            "url": "{{baseUrl}}/api/usuarios"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Registro de segunda cuenta: 201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('otherId', String(pm.response.json().datos.id));"] } }]
+        },
+        {
+          "name": "Preparación - Login de la cuenta propietaria",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{ownerEmail}}\",\n  \"contrasena\": \"{{ownerPassword}}\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Login de preparación: 200', () => pm.response.to.have.status(200));", "pm.collectionVariables.set('ownerToken', pm.response.json().token);"] } }]
+        },
+        {
+          "name": "Preparación - Crear producto de Ana",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Producto de Ana\",\n  \"sku\": \"NOV-POST-A\",\n  \"categoria\": \"Otros\",\n  \"existencia\": 12,\n  \"minimo\": 2,\n  \"descripcion\": \"Producto para comprobar propiedad\"\n}" },
+            "url": "{{baseUrl}}/api/productos"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Crear producto de prueba: 201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('productId', String(pm.response.json().datos.id));"] } }]
+        },
+        {
+          "name": "Preparación - Login de la segunda cuenta",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{otherEmail}}\",\n  \"contrasena\": \"{{otherPassword}}\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Login de segunda cuenta: 200', () => pm.response.to.have.status(200));", "pm.collectionVariables.set('otherToken', pm.response.json().token);"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Pruebas solicitadas (1–8)",
+      "item": [
+        {
+          "name": "1. Login correcto - 200 y JWT",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{ownerEmail}}\",\n  \"contrasena\": \"{{ownerPassword}}\"\n}" }, "url": "{{baseUrl}}/api/auth/login" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Login correcto: 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.test('Emite un token Bearer y duración de producción de 15 minutos', () => { pm.expect(body.token).to.be.a('string'); pm.expect(body.tipo).to.eql('Bearer'); pm.expect(body.expiraEnSegundos).to.eql(900); });", "pm.collectionVariables.set('ownerToken', body.token);"] } }]
+        },
+        {
+          "name": "2. Login incorrecto - 401 sin token",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{ownerEmail}}\",\n  \"contrasena\": \"incorrecta-para-la-prueba\"\n}" }, "url": "{{baseUrl}}/api/auth/login" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Login incorrecto: 401', () => pm.response.to.have.status(401));", "pm.test('No incluye token', () => pm.expect(pm.response.json()).not.to.have.property('token'));", "pm.test('Mensaje genérico', () => pm.expect(pm.response.json().mensaje).to.eql('Correo o contraseña incorrectos.'));"] } }]
+        },
+        {
+          "name": "3. Ruta privada sin token - 401",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{baseUrl}}/api/productos" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Sin token: 401 JSON', () => pm.response.to.have.status(401));", "pm.test('Error claro', () => pm.expect(pm.response.json().mensaje).to.be.a('string'));"] } }]
+        },
+        {
+          "name": "4. Firma alterada - 401",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["const token = pm.collectionVariables.get('ownerToken');", "const partes = token.split('.');", "partes[2] = (partes[2][0] === 'a' ? 'b' : 'a') + partes[2].slice(1);", "pm.collectionVariables.set('tamperedToken', partes.join('.'));"] } }, { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Firma alterada: 401', () => pm.response.to.have.status(401));"] } }],
+          "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{tamperedToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/productos" }
+        },
+        {
+          "name": "5. Token vencido firmado - 401",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["// Requiere jwtSecretBase64 como variable secreta de un Environment local de Postman.", "const CryptoJS = require('crypto-js');", "const secreto = pm.environment.get('jwtSecretBase64');", "if (!secreto) throw new Error('Configura jwtSecretBase64 en un Environment local; no lo exportes.');", "const base64url = (texto) => CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(texto)).replace(/=+$/, '').replace(/\\+/g, '-').replace(/\\//g, '_');", "const ahora = Math.floor(Date.now() / 1000);", "const encabezado = base64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));", "const carga = base64url(JSON.stringify({ sub: String(pm.collectionVariables.get('ownerId')), iss: 'comercializadora-nova-api', aud: 'comercializadora-nova-client', iat: ahora - 120, exp: ahora - 60 }));", "const firmado = encabezado + '.' + carga;", "const clave = CryptoJS.enc.Base64.parse(secreto);", "const firma = CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(firmado, clave)).replace(/=+$/, '').replace(/\\+/g, '-').replace(/\\//g, '_');", "pm.collectionVariables.set('expiredToken', firmado + '.' + firma);"] } }, { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('JWT firmado y ya vencido: 401', () => pm.response.to.have.status(401));"] } }],
+          "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{expiredToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/productos" }
+        },
+        {
+          "name": "6. Usuario autorizado - 200",
+          "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/productos" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Token válido y cuenta activa: 200', () => pm.response.to.have.status(200));", "pm.test('Responde con una lista JSON', () => pm.expect(pm.response.json().datos).to.be.an('array'));"] } }]
+        },
+        {
+          "name": "7. Modificación de recurso ajeno - 403 y sin cambios",
+          "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{otherToken}}", "type": "string" }] }, "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Intento no autorizado\"\n}" }, "url": "{{baseUrl}}/api/productos/{{productId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('La modificación ajena devuelve 403', () => pm.response.to.have.status(403));", "pm.sendRequest({ url: pm.collectionVariables.get('baseUrl') + '/api/productos/' + pm.collectionVariables.get('productId'), method: 'GET', header: { Authorization: 'Bearer ' + pm.collectionVariables.get('ownerToken') } }, (error, response) => { pm.test('El recurso conserva sus datos', () => { pm.expect(error).to.equal(null); pm.expect(response.code).to.eql(200); pm.expect(response.json().datos.nombre).to.eql('Producto de Ana'); }); });"] } }]
+        },
+        {
+          "name": "8. Tipo de dato inválido - 400 JSON",
+          "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nombre\": 123,\n  \"sku\": \"NOV-BAD\",\n  \"categoria\": \"Otros\",\n  \"existencia\": 2,\n  \"minimo\": 0\n}" }, "url": "{{baseUrl}}/api/productos" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Tipo inválido: 400', () => pm.response.to.have.status(400));", "pm.test('Respuesta de error JSON sin stack', () => { pm.expect(pm.response.json().mensaje).to.be.a('string'); pm.expect(pm.response.text()).not.to.include('SyntaxError'); });"] } }]
+        }
+      ]
+    }
+  ]
+}
