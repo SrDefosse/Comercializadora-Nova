@@ -1,4 +1,5 @@
 /node_modules/
+/data/postgres/
 .env
 .env.*
 !.env.example

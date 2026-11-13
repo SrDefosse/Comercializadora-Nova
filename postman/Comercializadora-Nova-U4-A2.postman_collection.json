@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Comercializadora Nova - Unidad 4 Actividad 2 (JWT)",
+    "name": "Comercializadora Nova - Unidad 4 Actividad 2",
     "description": "Local para preparar dos cuentas falsas y reproducir las ocho comprobaciones requeridas. La variable jwtSecretBase64 debe existir solo en un Environment local de Postman como valor secreto",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -20,7 +20,7 @@
   ],
   "item": [
     {
-      "name": "Preparación (ejecutar primero)",
+      "name": "Preparación",
       "item": [
         {
           "name": "Preparación - Registrar cuenta propietaria",

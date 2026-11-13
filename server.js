@@ -1,5 +1,4 @@
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { promisify } from 'node:util';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,21 +6,7 @@ import express from 'express';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import { SignJWT, jwtVerify } from 'jose';
-
-try {
-  const contenidoEnv = readFileSync(new URL('./.env', import.meta.url), 'utf8');
-  for (const linea of contenidoEnv.split(/\r?\n/)) {
-    const coincidencia = linea.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/);
-    if (!coincidencia || process.env[coincidencia[1]] !== undefined) continue;
-    let valor = coincidencia[2];
-    if ((valor.startsWith('"') && valor.endsWith('"')) || (valor.startsWith("'") && valor.endsWith("'"))) {
-      valor = valor.slice(1, -1);
-    }
-    process.env[coincidencia[1]] = valor;
-  }
-} catch (error) {
-  if (error.code !== 'ENOENT') throw error;
-}
+import './config/cargar-env.js';
 
 const scrypt = promisify(scryptCallback);
 const app = express();
@@ -61,9 +46,39 @@ if (!Number.isInteger(duracionAcceso) || duracionAcceso < 1
 const claveJwt = cargarClave();
 
 let productos = [
-  { id: 1, nombre: 'Café molido 500 g', sku: 'NOV-001', categoria: 'Abarrotes', existencia: 24, minimo: 5, descripcion: 'Café molido para venta', activo: true, propietarioId: null },
-  { id: 2, nombre: 'Agua mineral 1 L', sku: 'NOV-002', categoria: 'Bebidas', existencia: 12, minimo: 5, descripcion: 'Agua mineral de 1 litro', activo: true, propietarioId: null },
-  { id: 3, nombre: 'Detergente líquido', sku: 'NOV-003', categoria: 'Limpieza', existencia: 8, minimo: 5, descripcion: 'Detergente líquido para ropa', activo: true, propietarioId: null }
+  {
+    id: 1,
+    nombre: 'Café molido 500 g',
+    sku: 'NOV-001',
+    categoria: 'Abarrotes',
+    existencia: 24,
+    minimo: 5,
+    descripcion: 'Café molido para venta',
+    activo: true,
+    propietarioId: null
+  },
+  {
+    id: 2,
+    nombre: 'Agua mineral 1 L',
+    sku: 'NOV-002',
+    categoria: 'Bebidas',
+    existencia: 12,
+    minimo: 5,
+    descripcion: 'Agua mineral de 1 litro',
+    activo: true,
+    propietarioId: null
+  },
+  {
+    id: 3,
+    nombre: 'Detergente líquido',
+    sku: 'NOV-003',
+    categoria: 'Limpieza',
+    existencia: 8,
+    minimo: 5,
+    descripcion: 'Detergente líquido para ropa',
+    activo: true,
+    propietarioId: null
+  }
 ];
 const usuarios = [];
 let siguienteIdProducto = 4;
@@ -72,7 +87,12 @@ let siguienteIdUsuario = 1;
 
 async function crearHash(contrasena) {
   const salt = randomBytes(16);
-  const hash = await scrypt(contrasena, salt, 64, { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
+  const hash = await scrypt(contrasena, salt, 64, {
+    N: 16384,
+    r: 8,
+    p: 1,
+    maxmem: 64 * 1024 * 1024
+  });
   return `scrypt$16384$8$1$${salt.toString('base64')}$${hash.toString('base64')}`;
 }
 
@@ -129,14 +149,44 @@ function buscarPorId(arreglo, id) {
 
 
 function vistaUsuario(usuario) {
-  const { id, nombre, email, telefono, activo } = usuario;
-  return { id, nombre, email, telefono, activo };
+  const {
+    id,
+    nombre,
+    email,
+    telefono,
+    activo
+  } = usuario;
+  return {
+    id,
+    nombre,
+    email,
+    telefono,
+    activo
+  };
 }
 
 
 function vistaProducto(producto) {
-  const { id, nombre, sku, categoria, existencia, minimo, descripcion, activo } = producto;
-  return { id, nombre, sku, categoria, existencia, minimo, descripcion, activo };
+  const {
+    id,
+    nombre,
+    sku,
+    categoria,
+    existencia,
+    minimo,
+    descripcion,
+    activo
+  } = producto;
+  return {
+    id,
+    nombre,
+    sku,
+    categoria,
+    existencia,
+    minimo,
+    descripcion,
+    activo
+  };
 }
 
 app.disable('x-powered-by');
@@ -158,7 +208,10 @@ app.use(helmet({
 }));
 
 
-app.use(express.json({ limit: '16kb', strict: true }));
+app.use(express.json({
+  limit: '16kb',
+  strict: true
+}));
 app.use(express.static(directorio, { dotfiles: 'deny' }));
 
 app.use('/api', (solicitud, respuesta, siguiente) => {
@@ -187,7 +240,10 @@ app.post('/api/usuarios', async (solicitud, respuesta, siguiente) => {
       activo: true
     };
     usuarios.push(usuario);
-    return respuesta.status(201).json({ mensaje: 'Usuario registrado correctamente.', datos: vistaUsuario(usuario) });
+    return respuesta.status(201).json({
+      mensaje: 'Usuario registrado correctamente.',
+      datos: vistaUsuario(usuario)
+    });
   } catch (errorInterno) {
     return siguiente(errorInterno);
   }
@@ -221,14 +277,23 @@ app.post('/api/auth/login', limitadorLogin, async (solicitud, respuesta, siguien
 
     const ahora = Math.floor(Date.now() / 1000);
     const token = await new SignJWT({})
-      .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+      .setProtectedHeader({
+        alg: 'HS256',
+        typ: 'JWT'
+      })
       .setSubject(String(usuario.id))
       .setIssuer(emisor)
       .setAudience(audiencia)
       .setIssuedAt(ahora)
       .setExpirationTime(ahora + duracionAcceso)
       .sign(claveJwt);
-    return respuesta.status(200).json({ mensaje: 'Inicio de sesión correcto.', token, tipo: 'Bearer', expiraEnSegundos: duracionAcceso });
+
+    return respuesta.status(200).json({
+      mensaje: 'Inicio de sesión correcto.',
+      token,
+      tipo: 'Bearer',
+      expiraEnSegundos: duracionAcceso
+    });
   } catch (errorInterno) {
     return siguiente(errorInterno);
   }
@@ -297,8 +362,15 @@ app.put('/api/usuarios/:id', verificarToken, requerirPropietarioUsuario, (solici
   if (!soloCampos(cambios, ['nombre', 'email', 'telefono']) || Object.keys(cambios).length === 0) {
     return respuesta.status(400).json({ mensaje: 'Envía uno o más campos de perfil permitidos.' });
   }
-  const actualizado = { ...vistaUsuario(solicitud.usuarioObjetivo), ...cambios };
-  const error = validarPerfil({ nombre: actualizado.nombre, email: actualizado.email, telefono: actualizado.telefono });
+  const actualizado = {
+    ...vistaUsuario(solicitud.usuarioObjetivo),
+    ...cambios
+  };
+  const error = validarPerfil({
+    nombre: actualizado.nombre,
+    email: actualizado.email,
+    telefono: actualizado.telefono
+  });
   if (error) return respuesta.status(400).json({ mensaje: error });
   const emailNormalizado = actualizado.email.trim().toLowerCase();
   if (usuarios.some((usuario) => usuario.id !== solicitud.usuarioObjetivo.id && usuario.email.toLowerCase() === emailNormalizado)) {
@@ -307,12 +379,18 @@ app.put('/api/usuarios/:id', verificarToken, requerirPropietarioUsuario, (solici
   solicitud.usuarioObjetivo.nombre = actualizado.nombre.trim();
   solicitud.usuarioObjetivo.email = actualizado.email.trim();
   solicitud.usuarioObjetivo.telefono = actualizado.telefono.trim();
-  return respuesta.status(200).json({ mensaje: 'Perfil actualizado correctamente.', datos: vistaUsuario(solicitud.usuarioObjetivo) });
+  return respuesta.status(200).json({
+    mensaje: 'Perfil actualizado correctamente.',
+    datos: vistaUsuario(solicitud.usuarioObjetivo)
+  });
 });
 
 app.delete('/api/usuarios/:id', verificarToken, requerirPropietarioUsuario, (solicitud, respuesta) => {
   solicitud.usuarioObjetivo.activo = false;
-  return respuesta.status(200).json({ mensaje: 'Cuenta desactivada correctamente.', datos: vistaUsuario(solicitud.usuarioObjetivo) });
+  return respuesta.status(200).json({
+    mensaje: 'Cuenta desactivada correctamente.',
+    datos: vistaUsuario(solicitud.usuarioObjetivo)
+  });
 });
 
 app.get('/api/productos', verificarToken, (_solicitud, respuesta) => {
@@ -344,7 +422,10 @@ app.post('/api/productos', verificarToken, (solicitud, respuesta) => {
     propietarioId: solicitud.usuarioAutenticado.id
   };
   productos.push(producto);
-  return respuesta.status(201).json({ mensaje: 'Producto registrado correctamente.', datos: vistaProducto(producto) });
+  return respuesta.status(201).json({
+    mensaje: 'Producto registrado correctamente.',
+    datos: vistaProducto(producto)
+  });
 });
 
 
@@ -353,7 +434,10 @@ app.put('/api/productos/:id', verificarToken, requerirPropietarioProducto, (soli
     || Object.keys(solicitud.body).length === 0) {
     return respuesta.status(400).json({ mensaje: 'Envía uno o más campos de producto permitidos.' });
   }
-  const actualizado = { ...vistaProducto(solicitud.productoObjetivo), ...solicitud.body };
+  const actualizado = {
+    ...vistaProducto(solicitud.productoObjetivo),
+    ...solicitud.body
+  };
   const error = validarProducto({
     nombre: actualizado.nombre,
     sku: actualizado.sku,
@@ -373,13 +457,19 @@ app.put('/api/productos/:id', verificarToken, requerirPropietarioProducto, (soli
   solicitud.productoObjetivo.existencia = actualizado.existencia;
   solicitud.productoObjetivo.minimo = actualizado.minimo;
   solicitud.productoObjetivo.descripcion = (actualizado.descripcion ?? '').trim();
-  return respuesta.status(200).json({ mensaje: 'Producto actualizado correctamente.', datos: vistaProducto(solicitud.productoObjetivo) });
+  return respuesta.status(200).json({
+    mensaje: 'Producto actualizado correctamente.',
+    datos: vistaProducto(solicitud.productoObjetivo)
+  });
 });
 
 
 app.delete('/api/productos/:id', verificarToken, requerirPropietarioProducto, (solicitud, respuesta) => {
   solicitud.productoObjetivo.activo = false;
-  return respuesta.status(200).json({ mensaje: 'Producto desactivado correctamente.', datos: vistaProducto(solicitud.productoObjetivo) });
+  return respuesta.status(200).json({
+    mensaje: 'Producto desactivado correctamente.',
+    datos: vistaProducto(solicitud.productoObjetivo)
+  });
 });
 
 

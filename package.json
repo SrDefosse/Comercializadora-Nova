@@ -5,12 +5,23 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test:security": "node scripts/pruebas-seguridad.js"
+    "test:security": "node scripts/pruebas-seguridad.js",
+    "db:init": "node scripts/ejecutar-pglite.js init",
+    "db:demo": "node scripts/ejecutar-pglite.js demo",
+    "db:init:externa": "node scripts/inicializar-base.js",
+    "db:demo:externa": "node scripts/demostrar-base.js"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.16",
+    "@electric-sql/pglite-socket": "^0.2.19",
     "express": "^5.1.0",
     "express-rate-limit": "^8.7.1",
     "helmet": "^8.3.0",
-    "jose": "^6.2.13"
+    "jose": "^6.2.13",
+    "pg": "^8.23.1",
+    "sequelize": "^6.37.8"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

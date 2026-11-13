@@ -43,7 +43,12 @@ let stderr = '';
 proceso.stderr.setEncoding('utf8');
 proceso.stderr.on('data', (chunk) => { stderr += chunk; });
 
-async function pedir(ruta, { metodo = 'GET', token, cuerpo, contenido = 'application/json' } = {}) {
+async function pedir(ruta, {
+  metodo = 'GET',
+  token,
+  cuerpo,
+  contenido = 'application/json'
+} = {}) {
   const headers = {};
   if (token) headers.Authorization = `Bearer ${token}`;
   if (cuerpo !== undefined) headers['Content-Type'] = contenido;
@@ -54,15 +59,25 @@ async function pedir(ruta, { metodo = 'GET', token, cuerpo, contenido = 'applica
   });
   let json;
   try { json = await respuesta.json(); } catch { json = null; }
-  return { status: respuesta.status, json };
+  return {
+    status: respuesta.status,
+    json
+  };
 }
 
 const resultados = [];
 function registrar(nombre, accion) {
   return Promise.resolve().then(accion).then(() => {
-    resultados.push({ nombre, resultado: 'PASS' });
+    resultados.push({
+      nombre,
+      resultado: 'PASS'
+    });
   }).catch((error) => {
-    resultados.push({ nombre, resultado: 'FAIL', detalle: error.message });
+    resultados.push({
+      nombre,
+      resultado: 'FAIL',
+      detalle: error.message
+    });
   });
 }
 
@@ -78,9 +93,18 @@ async function esperarServidor() {
   throw new Error(`El servidor no respondió: ${stderr}`);
 }
 
-async function tokenFirmado({ sub, exp, iss = emisor, aud = audiencia, alg = 'HS256' }) {
+async function tokenFirmado({
+  sub,
+  exp,
+  iss = emisor,
+  aud = audiencia,
+  alg = 'HS256'
+}) {
   const emisorJwt = new SignJWT({})
-    .setProtectedHeader({ alg, typ: 'JWT' })
+    .setProtectedHeader({
+      alg,
+      typ: 'JWT'
+    })
     .setSubject(String(sub))
     .setIssuer(iss)
     .setAudience(aud)
@@ -93,7 +117,11 @@ async function tokenFirmado({ sub, exp, iss = emisor, aud = audiencia, alg = 'HS
 async function main() {
   const pruebaClaveFaltante = spawnSync(process.execPath, [serverPath], {
     cwd: projectPath,
-    env: { ...process.env, JWT_SECRET_BASE64: '', PORT: String(puertoDisponible) },
+    env: {
+      ...process.env,
+      JWT_SECRET_BASE64: '',
+      PORT: String(puertoDisponible)
+    },
     encoding: 'utf8',
     timeout: 5000
   });
@@ -116,14 +144,24 @@ async function main() {
 
   const usuarioA = await pedir('/api/usuarios', {
     metodo: 'POST',
-    cuerpo: { nombre: 'Ana Prueba', email: 'ana.prueba@example.test', telefono: '4771234567', contrasena: contrasenaA }
+    cuerpo: {
+      nombre: 'Ana Prueba',
+      email: 'ana.prueba@example.test',
+      telefono: '4771234567',
+      contrasena: contrasenaA
+    }
   });
   assert.equal(usuarioA.status, 201);
   const idA = usuarioA.json.datos.id;
 
   const usuarioB = await pedir('/api/usuarios', {
     metodo: 'POST',
-    cuerpo: { nombre: 'Bruno Prueba', email: 'bruno.prueba@example.test', telefono: '4771234568', contrasena: contrasenaB }
+    cuerpo: {
+      nombre: 'Bruno Prueba',
+      email: 'bruno.prueba@example.test',
+      telefono: '4771234568',
+      contrasena: contrasenaB
+    }
   });
   assert.equal(usuarioB.status, 201);
   const idB = usuarioB.json.datos.id;
@@ -133,14 +171,23 @@ async function main() {
     assert.equal(Object.hasOwn(usuarioA.json.datos, 'hashContrasena'), false);
     const intento = await pedir('/api/usuarios', {
       metodo: 'POST',
-      cuerpo: { nombre: 'Eve Prueba', email: 'eve.prueba@example.test', telefono: '4771234569', contrasena: contrasenaA, rol: 'admin' }
+      cuerpo: {
+        nombre: 'Eve Prueba',
+        email: 'eve.prueba@example.test',
+        telefono: '4771234569',
+        contrasena: contrasenaA,
+        rol: 'admin'
+      }
     });
     assert.equal(intento.status, 400);
   });
 
   const loginBueno = await pedir('/api/auth/login', {
     metodo: 'POST',
-    cuerpo: { email: 'ana.prueba@example.test', contrasena: contrasenaA }
+    cuerpo: {
+      email: 'ana.prueba@example.test',
+      contrasena: contrasenaA
+    }
   });
   await registrar('1. Login correcto: 200 y JWT sin datos sensibles', async () => {
     assert.equal(loginBueno.status, 200);
@@ -158,7 +205,10 @@ async function main() {
 
   const loginMalo = await pedir('/api/auth/login', {
     metodo: 'POST',
-    cuerpo: { email: 'ana.prueba@example.test', contrasena: 'incorrecta-123' }
+    cuerpo: {
+      email: 'ana.prueba@example.test',
+      contrasena: 'incorrecta-123'
+    }
   });
   await registrar('2. Login incorrecto: 401 y sin token', async () => {
     assert.equal(loginMalo.status, 401);
@@ -181,7 +231,10 @@ async function main() {
 
   const loginCorto = await pedir('/api/auth/login', {
     metodo: 'POST',
-    cuerpo: { email: 'ana.prueba@example.test', contrasena: contrasenaA }
+    cuerpo: {
+      email: 'ana.prueba@example.test',
+      contrasena: contrasenaA
+    }
   });
   await esperar(2200);
   await registrar('5. Token realmente vencido (emitido con TTL de prueba de 2 s): 401', async () => {
@@ -192,7 +245,10 @@ async function main() {
 
   const loginAActual = await pedir('/api/auth/login', {
     metodo: 'POST',
-    cuerpo: { email: 'ana.prueba@example.test', contrasena: contrasenaA }
+    cuerpo: {
+      email: 'ana.prueba@example.test',
+      contrasena: contrasenaA
+    }
   });
   const tokenA = loginAActual.json.token;
   await registrar('6. Token válido y usuario autorizado: 200', async () => {
@@ -204,7 +260,11 @@ async function main() {
 
   await registrar('Usuario autorizado actualiza su propio perfil: 200', async () => {
     const respuesta = await pedir(`/api/usuarios/${idA}`, {
-      metodo: 'PUT', token: tokenA, cuerpo: { telefono: '4771234500' }
+      metodo: 'PUT',
+      token: tokenA,
+      cuerpo: {
+        telefono: '4771234500'
+      }
     });
     assert.equal(respuesta.status, 200);
     assert.equal(respuesta.json.datos.telefono, '4771234500');
@@ -212,17 +272,31 @@ async function main() {
   });
 
   const productoA = await pedir('/api/productos', {
-    metodo: 'POST', token: tokenA,
-    cuerpo: { nombre: 'Producto de Ana', sku: 'NOV-TEST-A', categoria: 'Otros', existencia: 5, minimo: 1 }
+    metodo: 'POST',
+    token: tokenA,
+    cuerpo: {
+      nombre: 'Producto de Ana',
+      sku: 'NOV-TEST-A',
+      categoria: 'Otros',
+      existencia: 5,
+      minimo: 1
+    }
   });
   assert.equal(productoA.status, 201);
   await registrar('Propietario actualiza y desactiva su producto sin borrarlo: 200', async () => {
     const actualizado = await pedir(`/api/productos/${productoA.json.datos.id}`, {
-      metodo: 'PUT', token: tokenA, cuerpo: { existencia: 6 }
+      metodo: 'PUT',
+      token: tokenA,
+      cuerpo: {
+        existencia: 6
+      }
     });
     assert.equal(actualizado.status, 200);
     assert.equal(actualizado.json.datos.existencia, 6);
-    const eliminado = await pedir(`/api/productos/${productoA.json.datos.id}`, { metodo: 'DELETE', token: tokenA });
+    const eliminado = await pedir(`/api/productos/${productoA.json.datos.id}`, {
+      metodo: 'DELETE',
+      token: tokenA
+    });
     assert.equal(eliminado.status, 200);
     assert.equal(eliminado.json.datos.activo, false);
     assert.equal((await pedir(`/api/productos/${productoA.json.datos.id}`, { token: tokenA })).status, 404);
@@ -230,18 +304,32 @@ async function main() {
 
   const loginB = await pedir('/api/auth/login', {
     metodo: 'POST',
-    cuerpo: { email: 'bruno.prueba@example.test', contrasena: contrasenaB }
+    cuerpo: {
+      email: 'bruno.prueba@example.test',
+      contrasena: contrasenaB
+    }
   });
   assert.equal(loginB.status, 200);
   const productoB = await pedir('/api/productos', {
     metodo: 'POST',
     token: loginB.json.token,
-    cuerpo: { nombre: 'Producto de Bruno', sku: 'NOV-TEST-B', categoria: 'Otros', existencia: 7, minimo: 1, descripcion: 'Recurso de prueba ajeno' }
+    cuerpo: {
+      nombre: 'Producto de Bruno',
+      sku: 'NOV-TEST-B',
+      categoria: 'Otros',
+      existencia: 7,
+      minimo: 1,
+      descripcion: 'Recurso de prueba ajeno'
+    }
   });
   assert.equal(productoB.status, 201);
   const idProductoB = productoB.json.datos.id;
   const loginAReciente = await pedir('/api/auth/login', {
-    metodo: 'POST', cuerpo: { email: 'ana.prueba@example.test', contrasena: contrasenaA }
+    metodo: 'POST',
+    cuerpo: {
+      email: 'ana.prueba@example.test',
+      contrasena: contrasenaA
+    }
   });
   assert.equal(loginAReciente.status, 200);
 
@@ -249,7 +337,11 @@ async function main() {
     const antes = await pedir(`/api/productos/${idProductoB}`, { token: loginAReciente.json.token });
     assert.equal(antes.status, 200);
     const respuesta = await pedir(`/api/productos/${idProductoB}`, {
-      metodo: 'PUT', token: loginAReciente.json.token, cuerpo: { nombre: 'Intento no autorizado' }
+      metodo: 'PUT',
+      token: loginAReciente.json.token,
+      cuerpo: {
+        nombre: 'Intento no autorizado'
+      }
     });
     assert.equal(respuesta.status, 403);
     const despues = await pedir(`/api/productos/${idProductoB}`, { token: loginAReciente.json.token });
@@ -259,52 +351,92 @@ async function main() {
 
   await registrar('8. Campo de tipo incorrecto: 400 JSON y sin error interno', async () => {
     const loginReciente = await pedir('/api/auth/login', {
-      metodo: 'POST', cuerpo: { email: 'ana.prueba@example.test', contrasena: contrasenaA }
+      metodo: 'POST',
+      cuerpo: {
+        email: 'ana.prueba@example.test',
+        contrasena: contrasenaA
+      }
     });
     assert.equal(loginReciente.status, 200);
     const respuesta = await pedir('/api/productos', {
-      metodo: 'POST', token: loginReciente.json.token,
-      cuerpo: { nombre: 123, sku: 'NOV-BAD', categoria: 'Otros', existencia: 2, minimo: 0 }
+      metodo: 'POST',
+      token: loginReciente.json.token,
+      cuerpo: {
+        nombre: 123,
+        sku: 'NOV-BAD',
+        categoria: 'Otros',
+        existencia: 2,
+        minimo: 0
+      }
     });
     assert.equal(respuesta.status, 400);
     assert.equal(typeof respuesta.json.mensaje, 'string');
   });
 
   await registrar('Token firmado con issuer incorrecto: 401', async () => {
-    const token = await tokenFirmado({ sub: idA, iss: 'emisor-ajeno' });
+    const token = await tokenFirmado({
+      sub: idA,
+      iss: 'emisor-ajeno'
+    });
     assert.equal((await pedir('/api/productos', { token })).status, 401);
   });
 
   await registrar('Token firmado con audience incorrecta: 401', async () => {
-    const token = await tokenFirmado({ sub: idA, aud: 'audiencia-ajena' });
+    const token = await tokenFirmado({
+      sub: idA,
+      aud: 'audiencia-ajena'
+    });
     assert.equal((await pedir('/api/productos', { token })).status, 401);
   });
 
   await registrar('Token firmado con HS384 no admitido: 401', async () => {
-    const token = await tokenFirmado({ sub: idA, alg: 'HS384' });
+    const token = await tokenFirmado({
+      sub: idA,
+      alg: 'HS384'
+    });
     assert.equal((await pedir('/api/productos', { token })).status, 401);
   });
 
   await registrar('Campos de privilegio en perfil no se aceptan: 400', async () => {
     const loginReciente = await pedir('/api/auth/login', {
-      metodo: 'POST', cuerpo: { email: 'ana.prueba@example.test', contrasena: contrasenaA }
+      metodo: 'POST',
+      cuerpo: {
+        email: 'ana.prueba@example.test',
+        contrasena: contrasenaA
+      }
     });
     assert.equal(loginReciente.status, 200);
     const respuesta = await pedir(`/api/usuarios/${idA}`, {
-      metodo: 'PUT', token: loginReciente.json.token, cuerpo: { nombre: 'Ana Prueba', rol: 'admin' }
+      metodo: 'PUT',
+      token: loginReciente.json.token,
+      cuerpo: {
+        nombre: 'Ana Prueba',
+        rol: 'admin'
+      }
     });
     assert.equal(respuesta.status, 400);
   });
 
   const loginBReciente = await pedir('/api/auth/login', {
-    metodo: 'POST', cuerpo: { email: 'bruno.prueba@example.test', contrasena: contrasenaB }
+    metodo: 'POST',
+    cuerpo: {
+      email: 'bruno.prueba@example.test',
+      contrasena: contrasenaB
+    }
   });
-  const bajaB = await pedir(`/api/usuarios/${idB}`, { metodo: 'DELETE', token: loginBReciente.json.token });
+  const bajaB = await pedir(`/api/usuarios/${idB}`, {
+    metodo: 'DELETE',
+    token: loginBReciente.json.token
+  });
   await registrar('Cuenta inactiva: login y token anterior se rechazan con 401', async () => {
     assert.equal(bajaB.status, 200);
     assert.equal(bajaB.json.datos.activo, false);
     const login = await pedir('/api/auth/login', {
-      metodo: 'POST', cuerpo: { email: 'bruno.prueba@example.test', contrasena: contrasenaB }
+      metodo: 'POST',
+      cuerpo: {
+        email: 'bruno.prueba@example.test',
+        contrasena: contrasenaB
+      }
     });
     assert.equal(login.status, 401);
     assert.equal((await pedir('/api/productos', { token: loginBReciente.json.token })).status, 401);
@@ -313,11 +445,19 @@ async function main() {
   await registrar('Limitador de login: el sexto intento fallido en ventana devuelve 429', async () => {
     for (let intento = 0; intento < 3; intento += 1) {
       assert.equal((await pedir('/api/auth/login', {
-        metodo: 'POST', cuerpo: { email: 'inexistente@example.test', contrasena: 'incorrecta' }
+        metodo: 'POST',
+        cuerpo: {
+          email: 'inexistente@example.test',
+          contrasena: 'incorrecta'
+        }
       })).status, 401);
     }
     const limite = await pedir('/api/auth/login', {
-      metodo: 'POST', cuerpo: { email: 'inexistente@example.test', contrasena: 'incorrecta' }
+      metodo: 'POST',
+      cuerpo: {
+        email: 'inexistente@example.test',
+        contrasena: 'incorrecta'
+      }
     });
     assert.equal(limite.status, 429);
   });
@@ -326,7 +466,11 @@ async function main() {
 try {
   await main();
 } catch (error) {
-  resultados.push({ nombre: 'Error no controlado del ejecutor', resultado: 'FAIL', detalle: error.message });
+  resultados.push({
+    nombre: 'Error no controlado del ejecutor',
+    resultado: 'FAIL',
+    detalle: error.message
+  });
 } finally {
   if (proceso.exitCode === null) {
     proceso.kill();
