@@ -1,6 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
-import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
+import * as pgliteSocket from '@electric-sql/pglite-socket';
 import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const modo = process.argv[2];
@@ -10,10 +11,12 @@ if (!['init', 'demo'].includes(modo)) {
 }
 
 const puerto = Number(process.env.PGLITE_PORT ?? 5432);
-const directorioDatos = fileURLToPath(new URL('../data/postgres/', import.meta.url));
-await mkdir(fileURLToPath(new URL('../data/', import.meta.url)), { recursive: true });
+const directorioDatos = process.env.PGLITE_DATA_DIR
+  ? path.resolve(process.env.PGLITE_DATA_DIR)
+  : fileURLToPath(new URL('../data/postgres/', import.meta.url));
+await mkdir(path.dirname(directorioDatos), { recursive: true });
 const base = await PGlite.create(directorioDatos);
-const servidor = new PGLiteSocketServer({
+const servidor = new pgliteSocket.PGLiteSocketServer({
   db: base,
   port: puerto,
   host: '127.0.0.1'

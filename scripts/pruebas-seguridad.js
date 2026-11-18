@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { setTimeout as esperar } from 'node:timers/promises';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -14,18 +17,25 @@ const audiencia = 'comercializadora-nova-client';
 const contrasenaA = 'Nova-Prueba-Usuario-A-2026!';
 const contrasenaB = 'Nova-Prueba-Usuario-B-2026!';
 
-const puertoDisponible = await new Promise((resolve, reject) => {
+async function obtenerPuertoDisponible() {
   const listener = createServer();
-  listener.once('error', reject);
-  listener.listen(0, '127.0.0.1', () => {
-    const { port } = listener.address();
-    listener.close((error) => error ? reject(error) : resolve(port));
+  return new Promise((resolve, reject) => {
+    listener.once('error', reject);
+    listener.listen(0, '127.0.0.1', () => {
+      const { port } = listener.address();
+      listener.close((error) => error ? reject(error) : resolve(port));
+    });
   });
-});
+}
+
+const puertoDisponible = await obtenerPuertoDisponible();
+const puertoPostgres = await obtenerPuertoDisponible();
 const baseUrl = `http://127.0.0.1:${puertoDisponible}`;
 const serverPath = fileURLToPath(new URL('../server.js', import.meta.url));
+const servidorLocalPath = fileURLToPath(new URL('./servidor-local.js', import.meta.url));
 const projectPath = fileURLToPath(new URL('..', import.meta.url));
-const proceso = spawn(process.execPath, [serverPath], {
+const directorioTemporal = mkdtempSync(path.join(tmpdir(), 'nova-pruebas-u4-u5-'));
+const proceso = spawn(process.execPath, [servidorLocalPath], {
   cwd: projectPath,
   env: {
     ...process.env,
@@ -34,7 +44,9 @@ const proceso = spawn(process.execPath, [serverPath], {
     JWT_AUDIENCE: audiencia,
     NODE_ENV: 'test',
     JWT_TEST_ACCESS_TTL_SECONDS: '2',
-    PORT: String(puertoDisponible)
+    PORT: String(puertoDisponible),
+    PGLITE_PORT: String(puertoPostgres),
+    PGLITE_DATA_DIR: directorioTemporal
   },
   stdio: ['ignore', 'ignore', 'pipe']
 });
@@ -120,10 +132,11 @@ async function main() {
     env: {
       ...process.env,
       JWT_SECRET_BASE64: '',
-      PORT: String(puertoDisponible)
+      PORT: String(puertoDisponible),
+      DATABASE_URL: 'postgres://usuario:clave@127.0.0.1:5432/prueba'
     },
     encoding: 'utf8',
-    timeout: 5000
+    timeout: 15000
   });
   await registrar('Configuración sin clave: el servidor falla al iniciar', async () => {
     assert.notEqual(pruebaClaveFaltante.status, 0);
@@ -476,6 +489,10 @@ try {
     proceso.kill();
     await new Promise((resolve) => proceso.once('exit', resolve));
   }
+  rmSync(directorioTemporal, {
+    recursive: true,
+    force: true
+  });
 }
 
 for (const resultado of resultados) {

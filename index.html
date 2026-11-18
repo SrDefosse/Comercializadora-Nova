@@ -21,7 +21,8 @@
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-2">
             <li class="nav-item"><a class="nav-link active" href="#inicio">Inicio</a></li>
             <li class="nav-item"><a class="nav-link" href="#resumen">Resumen</a></li>
-            <li class="nav-item"><a class="nav-link" href="#captura">Registrar producto</a></li>
+            <li class="nav-item"><a class="nav-link" href="#cuenta">Cuenta</a></li>
+            <li class="nav-item"><a class="nav-link" href="#inventario">Inventario</a></li>
           </ul>
         </div>
       </div>
@@ -60,6 +61,62 @@
       </div>
     </section>
 
+    <section id="cuenta" class="py-5">
+      <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+          <div>
+            <p class="text-uppercase small fw-semibold text-primary mb-1">Acceso seguro</p>
+            <h2 class="h2 mb-2">Tu cuenta</h2>
+            <p class="text-secondary mb-0">Regístrate o inicia sesión para consultar y administrar el inventario.</p>
+          </div>
+          <div id="sesionActiva" class="d-none text-end" aria-live="polite">
+            <span id="usuarioActual" class="d-block fw-semibold"></span>
+            <button id="cerrarSesion" class="btn btn-sm btn-outline-secondary mt-2" type="button">Cerrar sesión</button>
+          </div>
+        </div>
+        <div id="formulariosAcceso" class="row g-4">
+          <div class="col-lg-6">
+            <form id="formularioRegistro" class="card border-0 shadow-sm p-4 h-100">
+              <h3 class="h4">Crear cuenta</h3>
+              <div class="mb-3">
+                <label for="registroNombre" class="form-label">Nombre</label>
+                <input id="registroNombre" name="nombre" class="form-control" autocomplete="name" minlength="2" maxlength="80" required>
+              </div>
+              <div class="mb-3">
+                <label for="registroEmail" class="form-label">Correo</label>
+                <input id="registroEmail" name="email" type="email" class="form-control" autocomplete="email" maxlength="254" required>
+              </div>
+              <div class="mb-3">
+                <label for="registroTelefono" class="form-label">Teléfono</label>
+                <input id="registroTelefono" name="telefono" type="tel" class="form-control" autocomplete="tel" pattern="[+]?[0-9 ()-]{7,20}" required>
+              </div>
+              <div class="mb-3">
+                <label for="registroContrasena" class="form-label">Contraseña</label>
+                <input id="registroContrasena" name="contrasena" type="password" class="form-control" autocomplete="new-password" minlength="12" maxlength="128" required>
+                <div class="form-text">Usa al menos 12 caracteres.</div>
+              </div>
+              <button class="btn btn-primary align-self-start" type="submit">Registrarme</button>
+            </form>
+          </div>
+          <div class="col-lg-6">
+            <form id="formularioLogin" class="card border-0 shadow-sm p-4 h-100">
+              <h3 class="h4">Iniciar sesión</h3>
+              <div class="mb-3">
+                <label for="loginEmail" class="form-label">Correo</label>
+                <input id="loginEmail" name="email" type="email" class="form-control" autocomplete="username" required>
+              </div>
+              <div class="mb-3">
+                <label for="loginContrasena" class="form-label">Contraseña</label>
+                <input id="loginContrasena" name="contrasena" type="password" class="form-control" autocomplete="current-password" required>
+              </div>
+              <button class="btn btn-outline-primary align-self-start" type="submit">Entrar</button>
+            </form>
+          </div>
+        </div>
+        <p id="mensajeCuenta" class="mt-3 mb-0" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
     <section id="resumen" class="py-5 bg-body-tertiary">
       <div class="container">
         <div class="mb-4">
@@ -88,21 +145,32 @@
       </div>
     </section>
 
+    <section id="inventario" class="py-5 bg-body-tertiary">
+      <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+          <div>
+            <p class="text-uppercase small fw-semibold text-primary mb-1">Datos desde PostgreSQL</p>
+            <h2 class="h2 mb-2">Inventario</h2>
+            <p class="text-secondary mb-0">Consulta los productos guardados y actualiza los que registraste con tu cuenta.</p>
+          </div>
+          <button id="cargarProductos" class="btn btn-outline-primary" type="button" disabled>Actualizar inventario</button>
+        </div>
+        <p id="estadoCarga" class="small text-secondary" role="status" aria-live="polite">Inicia sesión para consultar el inventario.</p>
+        <div id="listaProductos" class="row g-3" aria-live="polite"></div>
+        <p id="listaVacia" class="text-secondary d-none">No hay productos activos para mostrar.</p>
+      </div>
+    </section>
+
     <section id="captura" class="py-5">
       <div class="container">
         <div class="row g-4 align-items-start">
           <article class="col-lg-4">
             <h2 class="h2">Registrar un producto</h2>
             <div class="nota-importante rounded-3 p-3">
-              <strong>Dato importante:</strong> el SKU funciona como identificador del producto.
+              <strong>Dato importante:</strong> el SKU identifica cada producto y debe ser único.
             </div>
           </article>
           <div class="col-lg-8">
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-              <button id="cargarProductos" class="btn btn-outline-primary" type="button">Cargar inventario de ejemplo</button>
-              <span id="estadoCarga" class="small text-secondary" role="status" aria-live="polite"></span>
-            </div>
-            <div id="productosApi" class="tarjetas mb-3" aria-live="polite"></div>
             <form id="formularioProducto" class="card border-0 shadow-sm p-4 needs-validation" novalidate>
               <div class="row g-3">
                 <div class="col-md-8">
@@ -114,21 +182,6 @@
                   <label for="sku" class="form-label">SKU</label>
                   <input type="text" class="form-control" id="sku" placeholder="NOV-001" pattern="[A-Za-z0-9-]{4,15}" required>
                   <div class="invalid-feedback">Ingresa un SKU válido.</div>
-                </div>
-                <div class="col-md-4">
-                  <label for="contactoNombre" class="form-label">Nombre de contacto</label>
-                  <input type="text" class="form-control" id="contactoNombre" placeholder="Ej. Ana López" required>
-                  <div class="invalid-feedback">Ingresa un nombre válido (mínimo 2 letras).</div>
-                </div>
-                <div class="col-md-4">
-                  <label for="contactoEmail" class="form-label">Correo electrónico</label>
-                  <input type="email" class="form-control" id="contactoEmail" placeholder="ana@ejemplo.com" required>
-                  <div class="invalid-feedback">Ingresa un correo electrónico válido.</div>
-                </div>
-                <div class="col-md-4">
-                  <label for="contactoTelefono" class="form-label">Teléfono</label>
-                  <input type="tel" class="form-control" id="contactoTelefono" placeholder="10 dígitos" pattern="[0-9]{10}" required>
-                  <div class="invalid-feedback">Ingresa un teléfono de 10 dígitos.</div>
                 </div>
                 <div class="col-md-6">
                   <label for="categoria" class="form-label">Categoría</label>
@@ -153,19 +206,12 @@
                   <textarea class="form-control" id="descripcion" rows="3" placeholder="Descripción breve del producto"></textarea>
                 </div>
                 <div class="col-12 d-flex flex-wrap gap-2 pt-2">
-                  <button type="submit" class="btn btn-primary">Guardar producto</button>
-                  <button type="reset" class="btn btn-outline-secondary">Limpiar formulario</button>
+                  <button id="guardarProducto" type="submit" class="btn btn-primary" disabled>Guardar producto</button>
+                  <button id="cancelarEdicion" type="button" class="btn btn-outline-secondary d-none">Cancelar edición</button>
                 </div>
               </div>
-              <div class="mt-4">
-                <h3 class="h5">Productos registrados</h3>
-                <ul id="listaProductos" class="list-group"></ul>
-                <p id="listaVacia" class="small text-secondary mb-0">Aún no hay productos registrados.</p>
-              </div>
-              <div id="mensajeExito" class="alert alert-success mt-4 mb-0 d-none" role="status" aria-live="polite" tabindex="-1">
-                Producto validado correctamente. 
-              </div>
             </form>
+            <p id="mensajeProducto" class="mt-3 mb-0" role="status" aria-live="polite"></p>
           </div>
         </div>
       </div>

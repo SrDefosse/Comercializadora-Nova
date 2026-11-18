@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js",
+    "start": "node scripts/servidor-local.js",
+    "start:externa": "node server.js",
     "test:security": "node scripts/pruebas-seguridad.js",
     "db:init": "node scripts/ejecutar-pglite.js init",
     "db:demo": "node scripts/ejecutar-pglite.js demo",
